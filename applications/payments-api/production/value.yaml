@@ -1,0 +1,27 @@
+kubernetes:
+  base:
+    project: payments-api
+    monoRepo:
+      url: git@github.com:magal-devops/monorepo-gitops.git
+      appsFolder: apps-config
+      revision: main
+    globalRegistry:
+      url: https://index.docker.io/v1/
+    deployConfig:
+      cluster: https://kubernetes.default.svc
+      environment: production
+    metadata:
+      team: magal-devops
+    namespace:
+      annotations: {}
+  
+  apps:
+    - name: payments-api
+      image:
+        registry: docker.io
+        repository: nginx
+        pullPolicy: IfNotPresent
+        tag: latest
+      kind: Deployment
+      deploymentLabels: {}
+      replicas: 3

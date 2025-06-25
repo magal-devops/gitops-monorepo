@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applications-dynamic
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  # Descobrir todos os arquivos value.yaml
+  - git:
+      repoURL: git@github.com:magal-devops/monorepo-gitops.git
+      revision: main
+      files:
+      - path: applications/*/*/value.yaml
+  template:
+    metadata:
+      name: '{{index (.path.path | splitList "/") 1}}-{{index (.path.path | splitList "/") 2}}'
+      labels:
+        project: '{{index (.path.path | splitList "/") 1}}'
+        environment: '{{index (.path.path | splitList "/") 2}}'
+        team: magal-devops
+        managed-by: argocd-applicationset-simple
+    spec:
+      project: default
+      sources:
+      # Source 1: Helm Chart
+      - repoURL: git@github.com:magal-devops/helm-charts.git
+        targetRevision: HEAD
+        path: kubernetes
+        helm:
+          valueFiles:
+          - $values/applications/{{index (.path.path | splitList "/") 1}}/{{index (.path.path | splitList "/") 2}}/value.yaml
+      # Source 2: Values repository
+      - repoURL: git@github.com:magal-devops/monorepo-gitops.git
+        targetRevision: main
+        ref: values
+      destination:
+        # Cluster extraído do value.yaml
+        server: '{{.kubernetes.base.deployConfig.cluster}}'
+        namespace: '{{index (.path.path | splitList "/") 1}}-{{index (.path.path | splitList "/") 2}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+      revisionHistoryLimit: 5
