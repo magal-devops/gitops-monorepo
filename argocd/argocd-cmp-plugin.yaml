@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cmp-plugin
+  namespace: argocd
+data:
+  plugin.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: argocd-merge-helm-values
+    spec:
+      generate:
+        command: [sh, -c]
+        args:
+        - |
+          values_file=$(pwd)/value.yaml
+          rm -rf /tmp/helm-charts
+          git clone https://github.com/magal-devops/helm-charts.git /tmp/helm-charts || echo "Already exists"
+          cd /tmp/helm-charts/kubernetes
+          helm template . --namespace payments-api-production -f $values_file
+      discover:
+        find:
+          command: [sh, -c, 'find . -name "value.yaml"'] 

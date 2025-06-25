@@ -7,39 +7,36 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-  # Descobrir apenas arquivos de aplicação (não base.yaml)
-  - git:
-      repoURL: https://github.com/magal-devops/gitops-monorepo.git
-      revision: main
-      files:
-      - path: applications/*/*/app-*.yaml
+    - git:
+        repoURL: https://github.com/magal-devops/gitops-monorepo.git
+        revision: main
+        directories:
+        - path: "applications/*/*"
   template:
     metadata:
-      name: '{{.path.filename | replace "app-" "" | replace ".yaml" ""}}-{{index (.path.path | splitList "/") 2}}'
+      name: "{{index .path.segments 1}}-{{index .path.segments 2}}"
       labels:
-        project: '{{index (.path.path | splitList "/") 1}}'
-        environment: '{{index (.path.path | splitList "/") 2}}'
-        application: '{{.path.filename | replace "app-" "" | replace ".yaml" ""}}'
+        project: "{{index .path.segments 1}}"
+        environment: "{{index .path.segments 2}}"
+        name: "{{index .path.segments 1}}"
         team: magal-devops
         managed-by: argocd-applicationset
     spec:
       project: default
-      sources:
-      # Source 1: Helm Chart
-      - repoURL: https://github.com/magal-devops/helm-charts.git
+      source:
+        path: "applications/{{index .path.segments 1}}/{{index .path.segments 2}}"
+        repoURL: https://github.com/magal-devops/gitops-monorepo.git
         targetRevision: HEAD
-        path: kubernetes
-        helm:
-          valueFiles:
-          - $values/applications/{{index (.path.path | splitList "/") 1}}/{{index (.path.path | splitList "/") 2}}/base.yaml
-          - $values/applications/{{index (.path.path | splitList "/") 1}}/{{index (.path.path | splitList "/") 2}}/{{.path.filename}}
-      # Source 2: Values repository
-      - repoURL: https://github.com/magal-devops/gitops-monorepo.git
-        targetRevision: main
-        ref: values
+        plugin:
+          name: argocd-merge-helm-values
+          env:
+            - name: NAMESPACE
+              value: "{{index .path.segments 1}}-{{index .path.segments 2}}"
+            - name: HELM_RELEASE_NAME
+              value: "{{index .path.segments 1}}-{{index .path.segments 2}}2"
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{index (.path.path | splitList "/") 1}}-{{index (.path.path | splitList "/") 2}}'
+        namespace: "{{index .path.segments 1}}-{{index .path.segments 2}}"
       syncPolicy:
         automated:
           prune: true
@@ -48,4 +45,4 @@ spec:
         - CreateNamespace=true
         - PrunePropagationPolicy=foreground
         - PruneLast=true
-      revisionHistoryLimit: 5 
+      revisionHistoryLimit: 5
