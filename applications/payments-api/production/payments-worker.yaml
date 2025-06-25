@@ -1,0 +1,14 @@
+kubernetes:
+  apps:
+    - name: payments-worker
+      image:
+        repository: nginx  # Seria outra imagem na realidade
+        tag: latest
+      kind: Deployment
+      
+      # Worker não precisa de service externo
+      service:
+        enabled: false
+      
+      # Configurações específicas do worker
+      replicas: 2

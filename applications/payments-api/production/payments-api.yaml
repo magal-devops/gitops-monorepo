@@ -1,0 +1,9 @@
+kubernetes:
+  apps:
+    - name: payments-api
+      image:
+        repository: nginx
+        tag: latest
+      kind: Deployment
+      
+      replicas: 1

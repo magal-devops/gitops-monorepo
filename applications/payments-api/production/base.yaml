@@ -1,0 +1,39 @@
+kubernetes:
+  base:
+    project: payments-api
+    monoRepo:
+      url: git@github.com:magal-devops/monorepo-gitops.git
+      appsFolder: apps-config
+      revision: main
+    globalRegistry:
+      url: https://index.docker.io/v1/
+    deployConfig:
+      cluster: https://kubernetes.default.svc
+      environment: production
+    metadata:
+      team: magal-devops
+    namespace:
+      annotations: {}
+  
+  # Configurações padrão para todas as apps neste ambiente
+  defaults:
+    image:
+      registry: docker.io
+      pullPolicy: IfNotPresent
+    replicas: 3
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL 

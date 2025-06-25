@@ -7,37 +7,39 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-  # Descobrir todos os arquivos value.yaml
+  # Descobrir todos os arquivos específicos de aplicação (não base.yaml)
   - git:
-      repoURL: git@github.com:magal-devops/monorepo-gitops.git
+      repoURL: https://github.com/magal-devops/gitops-monorepo.git
       revision: main
       files:
-      - path: applications/*/*/value.yaml
+      - path: applications/*/*/*.yaml
+        exclude: "**/base.yaml"
   template:
     metadata:
-      name: '{{index (.path.path | splitList "/") 1}}-{{index (.path.path | splitList "/") 2}}'
+      name: '{{.path.filename | replace ".yaml" ""}}-{{index (.path.path | splitList "/") 2}}'
       labels:
         project: '{{index (.path.path | splitList "/") 1}}'
         environment: '{{index (.path.path | splitList "/") 2}}'
+        application: '{{.path.filename | replace ".yaml" ""}}'
         team: magal-devops
-        managed-by: argocd-applicationset-simple
+        managed-by: argocd-applicationset
     spec:
       project: default
       sources:
       # Source 1: Helm Chart
-      - repoURL: git@github.com:magal-devops/helm-charts.git
+      - repoURL: https://github.com/magal-devops/helm-charts.git
         targetRevision: HEAD
         path: kubernetes
         helm:
           valueFiles:
-          - $values/applications/{{index (.path.path | splitList "/") 1}}/{{index (.path.path | splitList "/") 2}}/value.yaml
+          - $values/applications/{{index (.path.path | splitList "/") 1}}/{{index (.path.path | splitList "/") 2}}/base.yaml
+          - $values/applications/{{index (.path.path | splitList "/") 1}}/{{index (.path.path | splitList "/") 2}}/{{.path.filename}}
       # Source 2: Values repository
-      - repoURL: git@github.com:magal-devops/monorepo-gitops.git
+      - repoURL: https://github.com/magal-devops/gitops-monorepo.git
         targetRevision: main
         ref: values
       destination:
-        # Cluster extraído do value.yaml
-        server: '{{.kubernetes.base.deployConfig.cluster}}'
+        server: https://kubernetes.default.svc
         namespace: '{{index (.path.path | splitList "/") 1}}-{{index (.path.path | splitList "/") 2}}'
       syncPolicy:
         automated:
@@ -48,3 +50,14 @@ spec:
         - PrunePropagationPolicy=foreground
         - PruneLast=true
       revisionHistoryLimit: 5
+  templatePatch: |
+    {{/* Ler o arquivo base para extrair configurações dinâmicas */}}
+    {{- $baseFile := (printf "applications/%s/%s/base.yaml" (index (.path.path | splitList "/") 1) (index (.path.path | splitList "/") 2)) }}
+    {{- range $file := .git.files }}
+      {{- if eq $file.path $baseFile }}
+        {{- $base := $file.content | fromYaml }}
+        spec:
+          destination:
+            server: '{{ $base.kubernetes.base.deployConfig.cluster }}'
+      {{- end }}
+    {{- end }} 
