@@ -15,25 +15,3 @@ kubernetes:
     namespace:
       annotations: {}
   
-  # Configurações padrão para todas as apps neste ambiente
-  defaults:
-    image:
-      registry: docker.io
-      pullPolicy: IfNotPresent
-    replicas: 3
-    resources:
-      limits:
-        cpu: 500m
-        memory: 512Mi
-      requests:
-        cpu: 250m
-        memory: 256Mi
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      fsGroup: 2000
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-          - ALL 

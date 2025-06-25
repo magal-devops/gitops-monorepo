@@ -48,15 +48,4 @@ spec:
         - CreateNamespace=true
         - PrunePropagationPolicy=foreground
         - PruneLast=true
-      revisionHistoryLimit: 5
-  templatePatch: |
-    {{/* Ler o arquivo base para extrair configurações dinâmicas */}}
-    {{- $baseFile := (printf "applications/%s/%s/base.yaml" (index (.path.path | splitList "/") 1) (index (.path.path | splitList "/") 2)) }}
-    {{- range $file := .git.files }}
-      {{- if eq $file.path $baseFile }}
-        {{- $base := $file.content | fromYaml }}
-        spec:
-          destination:
-            server: '{{ $base.kubernetes.base.deployConfig.cluster }}'
-      {{- end }}
-    {{- end }} 
+      revisionHistoryLimit: 5 

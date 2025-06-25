@@ -2,7 +2,9 @@ kubernetes:
   apps:
     - name: payments-worker
       image:
-        repository: nginx  # Seria outra imagem na realidade
+        repository: nginx
+        registry: docker.io
+        pullPolicy: IfNotPresent
         tag: latest
       kind: Deployment
       
