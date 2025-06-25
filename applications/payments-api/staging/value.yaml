@@ -1,0 +1,31 @@
+kubernetes:
+  base:
+    project: payments-api
+    globalRegistry:
+      url: https://index.docker.io/v1/
+    deployConfig:
+      clusters:
+        - https://kubernetes.default.svc
+      environment: staging
+    metadata:
+      team: magal-devops
+    namespace:
+      annotations: {}
+  apps:
+    web:
+      replicas: 1
+      image:
+        repository: nginx
+        registry: docker.io
+        pullPolicy: IfNotPresent
+        tag: latest
+      kind: Deployment
+    worker:
+      replicas: 1
+      image:
+        repository: nginx
+        registry: docker.io
+        pullPolicy: IfNotPresent
+        tag: latest
+      kind: Deployment
+      
