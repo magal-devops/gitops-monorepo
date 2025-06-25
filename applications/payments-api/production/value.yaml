@@ -4,8 +4,7 @@ kubernetes:
     globalRegistry:
       url: https://index.docker.io/v1/
     deployConfig:
-      clusters:
-        - https://kubernetes.default.svc
+      cluster: https://kubernetes.default.svc
       environment: production
     metadata:
       team: magal-devops
