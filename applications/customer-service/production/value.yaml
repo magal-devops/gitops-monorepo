@@ -1,0 +1,26 @@
+kubernetes:
+  base:
+    project: customer-service
+    monoRepo:
+      url: git@github.com:magal-devops/monorepo-gitops.git
+      appsFolder: apps-config
+      revision: main
+    globalRegistry:
+      url: https://index.docker.io/v1/
+    deployConfig:
+      cluster: https://kubernetes.default.svc
+      environment: production
+    metadata:
+      team: magal-devops
+    namespace:
+      annotations: {}
+  apps:
+    - name: customer-service
+      replicas: 1
+      image:
+        repository: nginx
+        registry: docker.io
+        pullPolicy: IfNotPresent
+        tag: latest
+      kind: Deployment
+      
