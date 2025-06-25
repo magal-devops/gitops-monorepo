@@ -7,10 +7,7 @@ kubernetes:
         pullPolicy: IfNotPresent
         tag: latest
       kind: Deployment
-      
-      # Worker não precisa de service externo
-      service:
-        enabled: false
+
       
       # Configurações específicas do worker
       replicas: 2
