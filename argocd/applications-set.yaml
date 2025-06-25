@@ -7,20 +7,19 @@ spec:
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
-  # Descobrir todos os arquivos específicos de aplicação (não base.yaml)
+  # Descobrir apenas arquivos de aplicação (não base.yaml)
   - git:
       repoURL: https://github.com/magal-devops/gitops-monorepo.git
       revision: main
       files:
-      - path: applications/*/*/*.yaml
-        exclude: "**/base.yaml"
+      - path: applications/*/*/app-*.yaml
   template:
     metadata:
-      name: '{{.path.filename | replace ".yaml" ""}}-{{index (.path.path | splitList "/") 2}}'
+      name: '{{.path.filename | replace "app-" "" | replace ".yaml" ""}}-{{index (.path.path | splitList "/") 2}}'
       labels:
         project: '{{index (.path.path | splitList "/") 1}}'
         environment: '{{index (.path.path | splitList "/") 2}}'
-        application: '{{.path.filename | replace ".yaml" ""}}'
+        application: '{{.path.filename | replace "app-" "" | replace ".yaml" ""}}'
         team: magal-devops
         managed-by: argocd-applicationset
     spec:
