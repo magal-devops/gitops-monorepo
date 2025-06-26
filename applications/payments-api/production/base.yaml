@@ -13,21 +13,4 @@ kubernetes:
       team: magal-devops
     namespace:
       annotations: {}
-  apps:
-    web:
-      replicas: 1
-      image:
-        repository: nginx
-        registry: docker.io
-        pullPolicy: IfNotPresent
-        tag: latest
-      kind: Deployment
-    worker:
-      replicas: 1
-      image:
-        repository: nginx
-        registry: docker.io
-        pullPolicy: IfNotPresent
-        tag: latest
-      kind: Deployment
-      
+ 
