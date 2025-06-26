@@ -1,0 +1,16 @@
+kubernetes:
+  base:
+    project: payments-api
+    globalRegistry:
+      url: https://index.docker.io/v1/
+    deployConfig:
+      cluster: https://kubernetes.default.svc
+      chartRepo: oci://ghcr.io/magal-devops/charts
+      chartName: kubernetes
+      chartVersion: 1.0.0
+      environment: staging
+    metadata:
+      team: magal-devops
+    namespace:
+      annotations: {}
+ 

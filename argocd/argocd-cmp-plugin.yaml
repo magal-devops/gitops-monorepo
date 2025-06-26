@@ -14,11 +14,22 @@ data:
         command: [sh, -c]
         args:
         - |
-          values_file=$(pwd)/value.yaml
-          rm -rf /tmp/helm-charts
-          git clone https://github.com/magal-devops/helm-charts.git /tmp/helm-charts || echo "Already exists"
-          cd /tmp/helm-charts/kubernetes
-          helm template . --namespace payments-api-production -f $values_file
-      discover:
-        find:
-          command: [sh, -c, 'find . -name "value.yaml"'] 
+          export HELM_CACHE_HOME=/tmp/.helm
+          export HELM_CONFIG_HOME=/tmp/.helm
+          export HELM_DATA_HOME=/tmp/.helm
+          
+          GITHUB_TOKEN=$(cat /etc/github-credentials/token)
+          echo "${GITHUB_TOKEN}" | helm registry login ghcr.io --username magal-devops --password-stdin
+
+          VALUE_ARGS=""
+          for f in *.yaml; do
+            [ -f "$f" ] || continue 
+            VALUE_ARGS="$VALUE_ARGS -f $f"
+          done
+
+          helm template ${ARGOCD_ENV_HELM_CHART_REPO}/${ARGOCD_ENV_HELM_CHART_NAME} \
+          --version ${ARGOCD_ENV_HELM_CHART_VERSION} \
+          --namespace ${ARGOCD_ENV_NAMESPACE} \
+          $VALUE_ARGS
+
+
