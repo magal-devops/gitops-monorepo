@@ -1,0 +1,11 @@
+kubernetes:
+  apps:
+    payments-grpc:
+      replicas: 2
+      image:
+        repository: nginx
+        registry: docker.io
+        pullPolicy: IfNotPresent
+        tag: latest
+      kind: Deployment
+  

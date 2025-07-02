@@ -1,0 +1,11 @@
+kubernetes:
+  apps:
+    web:
+      replicas: 1
+      image:
+        repository: nginx
+        registry: docker.io
+        pullPolicy: IfNotPresent
+        tag: latest
+      kind: Deployment
+  

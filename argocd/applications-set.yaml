@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: applications-dynamic
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/magal-devops/gitops-monorepo.git
+        revision: main
+        files:
+        - path: "applications/*/*/_base.yaml"
+  template:
+    metadata:
+      name: "{{.kubernetes.base.project}}-{{.kubernetes.base.deployConfig.environment}}"
+      labels:
+        project: "{{.kubernetes.base.project}}"
+        environment: "{{.kubernetes.base.deployConfig.environment}}"
+        name: "{{.kubernetes.base.project}}"
+        team: "{{.kubernetes.base.metadata.team}}"
+        managed-by: argocd-applicationset
+    spec:
+      project: default
+      source:
+        path: "applications/{{.kubernetes.base.project}}/{{.kubernetes.base.deployConfig.environment}}"
+        repoURL: https://github.com/magal-devops/gitops-monorepo.git
+        targetRevision: HEAD
+        plugin:
+          name: argocd-merge-helm-values
+          env:
+            - name: NAMESPACE
+              value: "{{.kubernetes.base.project}}-{{.kubernetes.base.deployConfig.environment}}"
+            - name: HELM_RELEASE_NAME
+              value: "{{.kubernetes.base.project}}-{{.kubernetes.base.deployConfig.environment}}"
+            - name: HELM_CHART_REPO
+              value: "{{.kubernetes.base.deployConfig.chartRepo}}"
+            - name: HELM_CHART_VERSION
+              value: "{{.kubernetes.base.deployConfig.chartVersion}}"
+            - name: HELM_CHART_NAME
+              value: "kubernetes"
+      destination:
+        server: "{{.kubernetes.base.deployConfig.cluster}}"
+        namespace: "{{.kubernetes.base.project}}-{{.kubernetes.base.deployConfig.environment}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=foreground
+        - PruneLast=true
+      revisionHistoryLimit: 5
